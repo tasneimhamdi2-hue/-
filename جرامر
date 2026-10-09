@@ -1,0 +1,393 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي قواعد اللغة الإنجليزية | English Grammar Quest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .btn-bounce:hover {
+            transform: translateY(-2px);
+        }
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+<div class="w-full max-w-4xl glass-card rounded-3xl shadow-2xl overflow-hidden my-6 border border-white/20 relative">
+
+    <!-- Header / Progress Bar -->
+    <div id="progress-container" class="hidden">
+        <div class="w-full bg-slate-200 h-3">
+            <div id="progress-bar" class="bg-gradient-to-r from-teal-400 to-indigo-600 h-3 transition-all duration-300 w-0"></div>
+        </div>
+        <div class="flex justify-between items-center px-6 py-4 bg-slate-50 border-b border-slate-100">
+            <span id="stage-badge" class="bg-indigo-900 text-white text-xs md:text-sm font-bold px-4 py-1.5 rounded-full">المرحلة 1: التذكر</span>
+            <div class="text-indigo-950 font-extrabold text-sm md:text-lg">
+                النتيجة: <span id="score-val" class="text-teal-600 text-xl">0</span> / 100
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="screen-start" class="p-6 md:p-12 text-center flex flex-col items-center">
+        <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center text-4xl mb-4 shadow-inner">
+            🎓
+        </div>
+        <h1 class="text-3xl md:text-4xl font-black text-indigo-950 mb-3">تحدي قواعد اللغة الإنجليزية</h1>
+        <p class="text-slate-600 max-w-md text-sm md:text-base mb-8">اختبر مهاراتك في 100 سؤال تفاعلي مقسمة على 6 مستويات معرفية وفق هرم بلوم!</p>
+        
+        <div class="w-full max-w-md space-y-4 text-right mb-8">
+            <div>
+                <label class="block text-sm font-bold text-indigo-950 mb-1">اسم الطالب الكامل:</label>
+                <input type="text" id="student-name" placeholder="أدخل اسمك ثلاثياً..." class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-indigo-950 mb-1">الصف الدراسي:</label>
+                <input type="text" id="student-class" placeholder="مثال: الخامس / أ" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-teal-500 focus:outline-none transition">
+            </div>
+        </div>
+
+        <button onclick="startGame()" class="w-full max-w-md bg-gradient-to-r from-teal-500 to-indigo-600 text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:shadow-teal-500/25 btn-bounce transition duration-200 mb-6">
+            ابدأ الاختيار واللعب الآن 🚀
+        </button>
+
+        <!-- Share Game Section -->
+        <div class="w-full max-w-md bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center">
+            <span class="text-xs font-bold text-slate-500 mb-2">🔗 شارك هذه اللعبة مع زملائك أو طلابك:</span>
+            <div class="flex w-full gap-2">
+                <input type="text" id="share-link-input" readonly class="w-full bg-white border border-slate-300 text-xs px-3 py-2 rounded-lg text-slate-600 focus:outline-none">
+                <button onclick="copyShareLink()" class="bg-indigo-900 hover:bg-indigo-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition shrink-0">
+                    نسخ الرابط
+                </button>
+            </div>
+            <span id="copy-toast" class="text-teal-600 text-xs font-bold mt-2 hidden">✓ تم نسخ الرابط بنجاح!</span>
+        </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="screen-quiz" class="p-6 md:p-10 hidden flex-col">
+        <div class="mb-6">
+            <h2 id="question-text" class="text-lg md:text-2xl font-bold text-slate-800 text-left dir-ltr leading-relaxed">
+                Question text goes here...
+            </h2>
+        </div>
+
+        <div id="options-container" class="grid grid-cols-1 gap-3 dir-ltr mb-6">
+            <!-- Options dynamically injected here -->
+        </div>
+
+        <!-- Feedback Box -->
+        <div id="feedback-box" class="hidden p-4 rounded-2xl border text-right transition-all duration-300 mb-6">
+            <div id="feedback-title" class="font-bold text-base md:text-lg mb-1"></div>
+            <div id="feedback-text" class="text-sm md:text-base opacity-90"></div>
+        </div>
+
+        <div class="flex justify-end">
+            <button id="btn-next" onclick="nextQuestion()" class="hidden bg-indigo-950 text-white font-bold px-8 py-3 rounded-xl hover:bg-indigo-900 transition">
+                السؤال التالي ⬅️
+            </button>
+        </div>
+    </div>
+
+    <!-- Certificate Screen -->
+    <div id="screen-certificate" class="p-6 md:p-12 text-center hidden flex-col items-center">
+        <div class="border-8 border-double border-indigo-900 bg-amber-50/40 p-6 md:p-10 rounded-2xl w-full max-w-2xl relative shadow-sm">
+            <div class="text-4xl mb-2">🏆</div>
+            <h2 class="text-2xl md:text-3xl font-black text-indigo-950 mb-2">شهادة تقدير وتفوق</h2>
+            <p class="text-slate-600 text-sm md:text-base">تُمنح هذه الشهادة بكل فخر للطالب/ـة:</p>
+            
+            <div id="cert-name" class="text-2xl md:text-3xl font-extrabold text-teal-600 my-3 underline decoration-teal-400">
+                اسم الطالب
+            </div>
+            
+            <p class="text-slate-700 text-sm md:text-base">بالصف الدراسي: <strong id="cert-class">--</strong></p>
+            
+            <p class="text-slate-600 text-xs md:text-sm my-4 leading-relaxed">
+                لإتمامه بنجاح <strong>اختبار قواعد اللغة الإنجليزية الشامل (100 سؤال)</strong><br>
+                وحصوله على تقييم متميز في كافة محاور المادة.
+            </p>
+
+            <div class="bg-indigo-900 text-white py-3 px-6 rounded-xl inline-block font-black text-lg my-2">
+                الدرجة النهائية: <span id="cert-score" class="text-amber-400 text-2xl">0</span> / 100
+            </div>
+
+            <div class="mt-6 text-xs text-slate-400 border-t border-slate-200 pt-3 flex justify-between items-center">
+                <span>تاريخ الإصدار: <span id="cert-date">--</span></span>
+                <span>تحدي قواعد الإنجليزية</span>
+            </div>
+        </div>
+
+        <div class="no-print mt-6 flex flex-wrap gap-4 justify-center">
+            <button onclick="window.print()" class="bg-slate-800 text-white font-bold px-6 py-3 rounded-xl hover:bg-slate-700 transition">
+                🖨️ طباعة الشهادة / حفظ PDF
+            </button>
+            <button onclick="location.reload()" class="bg-teal-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-teal-500 transition">
+                🔄 إعادة الاختبار
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Initialize share link
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('share-link-input').value = window.location.href;
+    });
+
+    function copyShareLink() {
+        const linkInput = document.getElementById('share-link-input');
+        linkInput.select();
+        document.execCommand('copy');
+        
+        const toast = document.getElementById('copy-toast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    // 100 Questions Data
+    const questionsBank = [
+        // Section 1: Remembering (1-15)
+        { text: "1. What is the past form of 'go'?", options: ["A. Goes", "B. Went", "C. Going", "D. Gone"], correct: 1, explanation: "الفعل 'go' غير منتظم، وماضيه البسيط هو 'went'." },
+        { text: "2. Which sentence is in the Present Simple?", options: ["A. She played tennis yesterday.", "B. She is playing tennis now.", "C. She plays tennis every day.", "D. She will play tennis tomorrow."], correct: 2, explanation: "المضارع البسيط يعبر عن الروتين اليومي ويأتي الفعل مع المفرد مضافاً له -s." },
+        { text: "3. 'Ali _____ football every Friday.'", options: ["A. play", "B. plays", "C. played", "D. playing"], correct: 1, explanation: "مع الفاعل المفرد (Ali) في المضارع البسيط نلاحظ إضافة -s للفعل." },
+        { text: "4. Which modal verb expresses ability?", options: ["A. Must", "B. Mustn’t", "C. Can", "D. Did"], correct: 2, explanation: "الفعل الناقص 'Can' يستخدم للتعبير عن القدرة والاستطاعة." },
+        { text: "5. Which modal verb expresses prohibition?", options: ["A. Can", "B. Can’t", "C. Must", "D. Mustn’t"], correct: 3, explanation: "الفعل الناقص 'Mustn’t' يعبر عن المنع والتحريم." },
+        { text: "6. The book is _____ the table.", options: ["A. under", "B. yesterday", "C. quickly", "D. happy"], correct: 0, explanation: "'under' هو حرف مكان صحيح بمعنى (تحت)." },
+        { text: "7. What is the past form of 'eat'?", options: ["A. Eated", "B. Eats", "C. Ate", "D. Eating"], correct: 2, explanation: "'eat' فعل غير منتظم وماضيه 'ate'." },
+        { text: "8. '_____ you swim?'", options: ["A. Are", "B. Can", "C. Does", "D. Did"], correct: 1, explanation: "نستخدم 'Can' للسؤال عن القدرة والمهارات." },
+        { text: "9. Which preposition means 'below something'?", options: ["A. Above", "B. Between", "C. Under", "D. Behind"], correct: 2, explanation: "حرف الجر 'Under' يعني أدنى أو تحت الشيء." },
+        { text: "10. Choose the correct sentence.", options: ["A. He don’t like milk.", "B. He doesn’t likes milk.", "C. He doesn’t like milk.", "D. He not like milk."], correct: 2, explanation: "نستخدم 'doesn't' متبوعة بالمصدر بدون s للنفي مع المفرد." },
+        { text: "11. True or False: The past form of 'see' is 'saw'.", options: ["True", "False"], correct: 0, explanation: "صحيح! الفعل see ينقلب إلى saw في الماضي البسيط." },
+        { text: "12. True or False: We use the Present Simple for daily routines.", options: ["True", "False"], correct: 0, explanation: "صحيح! المضارع البسيط يستخدم للحديث عن العادات والروتين." },
+        { text: "13. True or False: We add -s to the verb after 'he' in the Present Simple affirmative.", options: ["True", "False"], correct: 0, explanation: "صحيح! إضافة s مع المفرد الغائب (he/she/it)." },
+        { text: "14. True or False: 'Mustn’t' means that something is not allowed.", options: ["True", "False"], correct: 0, explanation: "صحيح! Mustn't تعبر عن عدم السماح بالشيء." },
+        { text: "15. True or False: 'Next to' means beside something.", options: ["True", "False"], correct: 0, explanation: "صحيح! Next to تعني بجانب." },
+
+        // Section 2: Understanding (16-35)
+        { text: "16. Sara visited her grandmother yesterday. When did Sara visit her grandmother?", options: ["A. Tomorrow", "B. Every day", "C. Yesterday", "D. Now"], correct: 2, explanation: "الفعل 'visited' يوضح أن الحدث وقع وانتهى في الماضي (Yesterday)." },
+        { text: "17. 'My father works in a hospital.' What does this sentence describe?", options: ["A. A past event", "B. A regular activity or fact", "C. A future plan", "D. An ability"], correct: 1, explanation: "جملة تعبر عن حقيقة أو روتين وظيفي بالمضارع البسيط." },
+        { text: "18. 'You must wear a seat belt.' What does 'must' express?", options: ["A. Ability", "B. Prohibition", "C. Obligation", "D. Past action"], correct: 2, explanation: "الفعل 'must' يعبر عن الالتزام والواجب (Obligation)." },
+        { text: "19. 'You mustn’t run in the classroom.' What does it mean?", options: ["A. You should run.", "B. You are not allowed to run.", "C. You can run.", "D. You ran yesterday."], correct: 1, explanation: "تعني غير مسموح لك بالركض نهائياً داخل الفصل." },
+        { text: "20. 'The cat is behind the sofa.' Where is the cat?", options: ["A. In front of the sofa", "B. Under the sofa", "C. At the back of the sofa", "D. On the sofa"], correct: 2, explanation: "'behind' تعني في الخلف من الشيء." },
+        { text: "21. Which sentence describes a past action?", options: ["A. We visit the museum every year.", "B. We visited the museum last year.", "C. We are visiting the museum now.", "D. We visit the museum tomorrow."], correct: 1, explanation: "الفعل 'visited' يعبر عن حدث ماضٍ مكتمل." },
+        { text: "22. 'Mona can speak English.' What does this sentence express?", options: ["A. Ability", "B. Obligation", "C. Prohibition", "D. A past action"], correct: 0, explanation: "الفعل 'can' يعبر عن امتلاك مهارة وقدرة." },
+        { text: "23. The ball is between two boxes. Where is the ball?", options: ["A. Inside one box", "B. In the middle of two boxes", "C. Behind both boxes", "D. Above the boxes"], correct: 1, explanation: "'between' تعني بين شيئين (في المنتصف)." },
+        { text: "24. Which sentence describes a habit?", options: ["A. I watched TV last night.", "B. I watch TV every evening.", "C. I watched TV yesterday.", "D. I am watching TV now."], correct: 1, explanation: "'every evening' تدل على تكرار الحدث واعتياده." },
+        { text: "25. 'Ahmed didn’t go to school yesterday.' What does this tell us?", options: ["A. Ahmed went to school.", "B. Ahmed does not go to school every day.", "C. Ahmed did not go to school yesterday.", "D. Ahmed will go to school tomorrow."], correct: 2, explanation: "نفي صريح لذهاب أحمد بالماضي يوم أمس." },
+        { text: "26. Choose the sentence that expresses inability.", options: ["A. I must swim.", "B. I can swim.", "C. I can’t swim.", "D. I mustn’t swim."], correct: 2, explanation: "'can't' تعبر عن عدم القدرة أو العجز عن فعل شيء." },
+        { text: "27. Which preposition describes a picture hanging on a wall?", options: ["A. On", "B. Between", "C. Under", "D. Behind"], correct: 0, explanation: "الصور تُعلق على السطح 'on the wall'." },
+        { text: "28. 'Does your sister like reading?' Which answer is correct?", options: ["A. Yes, she do.", "B. Yes, she does.", "C. Yes, she did.", "D. Yes, she is."], correct: 1, explanation: "السؤال بدأ بـ Does والإجابة المثبتة تكون Yes, she does." },
+        { text: "29. Which sentence is correct?", options: ["A. They was happy yesterday.", "B. They were happy yesterday.", "C. They are happy yesterday.", "D. They be happy yesterday."], correct: 1, explanation: "الجمع في الماضي مع 'They' يأخذ 'were'." },
+        { text: "30. 'The shoes are in the box.' What does 'in' mean?", options: ["A. Outside the box", "B. Inside the box", "C. Above the box", "D. Behind the box"], correct: 1, explanation: "حرف الجر 'in' يعني بالداخل." },
+        { text: "31. True or False: 'Must' can express an important obligation.", options: ["True", "False"], correct: 0, explanation: "صحيح! Must تعبر عن التزام ضروري." },
+        { text: "32. True or False: We use 'did' to form many Past Simple questions.", options: ["True", "False"], correct: 0, explanation: "صحيح! Did هو الفعل المساعد لتكوين أسئلة الماضي." },
+        { text: "33. True or False: 'She goes to school every day' describes a past action.", options: ["True", "False"], correct: 1, explanation: "خطأ! الجملة تعبر عن مضارع وبسيط وروتين يومي." },
+        { text: "34. True or False: 'Can’t' and 'mustn’t' always have exactly the same meaning.", options: ["True", "False"], correct: 1, explanation: "خطأ! Can't تعبر عن عدم القدرة/السماح، بينما Mustn't للتحريم والمنع القاطع." },
+        { text: "35. True or False: 'In front of' means at the back of something.", options: ["True", "False"], correct: 1, explanation: "خطأ! In front of تعني أمام وليس خلف." },
+
+        // Section 3: Applying (36-65)
+        { text: "36. Yesterday, we _____ a movie.", options: ["A. watch", "B. watches", "C. watched", "D. watching"], correct: 2, explanation: "وجود Yesterday يتطلب الماضي المنتظم -ed." },
+        { text: "37. My brother _____ his homework every afternoon.", options: ["A. do", "B. does", "C. did", "D. doing"], correct: 1, explanation: "فاعل مفرد + روتين daily = does." },
+        { text: "38. _____ you visit your aunt last weekend?", options: ["A. Do", "B. Does", "C. Did", "D. Are"], correct: 2, explanation: "السؤال في الماضي (last weekend) يتطلب الفعل المساعد Did." },
+        { text: "39. Lina _____ eat meat. She is a vegetarian.", options: ["A. don’t", "B. doesn’t", "C. didn’t", "D. isn’t"], correct: 1, explanation: "نفي المضارع المفرد بـ doesn't." },
+        { text: "40. We _____ respect our teachers.", options: ["A. must", "B. mustn’t", "C. can’t", "D. did"], correct: 0, explanation: "احترام المعلمين واجب وأمر إيجابي نستخدم معه must." },
+        { text: "41. Students _____ use their phones during the exam if the rules forbid it.", options: ["A. can", "B. must", "C. mustn’t", "D. do"], correct: 2, explanation: "القوانين تمنع ذلك فتستعمل mustn't." },
+        { text: "42. The dog is _____ the table. You cannot see it because it is below the table.", options: ["A. on", "B. under", "C. above", "D. between"], correct: 1, explanation: "'below' تدل على الخيار 'under'." },
+        { text: "43. My mother _____ dinner last night.", options: ["A. cook", "B. cooks", "C. cooked", "D. cooking"], correct: 2, explanation: "last night دلالة ماضي = cooked." },
+        { text: "44. Omar and Ali _____ basketball every Saturday.", options: ["A. plays", "B. play", "C. played", "D. playing"], correct: 1, explanation: "الفاعل جمع (عمر وعلي) يأخذ المصدر بدون اضافات 'play'." },
+        { text: "45. Choose the correct question.", options: ["A. Does he plays tennis?", "B. Do he play tennis?", "C. Does he play tennis?", "D. Did he plays tennis?"], correct: 2, explanation: "مع Does يجب يعود الفعل لمصدره الخالي من s." },
+        { text: "46. I _____ ride a bike when I was five, but now I can.", options: ["A. can", "B. can’t", "C. must", "D. mustn’t"], correct: 1, explanation: "السياق يدل على عدم القدرة سابقاً مقارنة بـ 'now I can'." },
+        { text: "47. The bank is _____ the school and the supermarket.", options: ["A. between", "B. under", "C. on", "D. in"], correct: 0, explanation: "بين مكانين نستخدم between." },
+        { text: "48. We _____ to the beach two days ago.", options: ["A. go", "B. goes", "C. went", "D. going"], correct: 2, explanation: "ago دلالة ماضي بسيط = went." },
+        { text: "49. A: _____ your father work in Dubai? B: Yes, he does.", options: ["A. Do", "B. Does", "C. Did", "D. Is"], correct: 1, explanation: "الإجابة فيها does فالسؤال يبدأ بها." },
+        { text: "50. The children _____ in the garden yesterday.", options: ["A. play", "B. plays", "C. played", "D. playing"], correct: 2, explanation: "أمس (yesterday) = played." },
+        { text: "51. You _____ touch a hot oven. It is dangerous.", options: ["A. must", "B. mustn’t", "C. can", "D. do"], correct: 1, explanation: "تحذير لمنع خطورة = mustn't." },
+        { text: "52. The clock is _____ the wall.", options: ["A. on", "B. under", "C. between", "D. behind"], correct: 0, explanation: "الساعة معلقة على الحائط 'on'." },
+        { text: "53. My friends _____ like spicy food.", options: ["A. doesn’t", "B. don’t", "C. didn’t likes", "D. isn’t"], correct: 1, explanation: "الفاعل جمع (My friends) ينفى بـ don't." },
+        { text: "54. She _____ a letter to her friend last week.", options: ["A. write", "B. writes", "C. wrote", "D. writing"], correct: 2, explanation: "last week = الماضي من write هو wrote." },
+        { text: "55. You _____ park here because this sign says 'No Parking'.", options: ["A. must", "B. can", "C. mustn’t", "D. do"], correct: 2, explanation: "لوحة ممنوع الوقوف تعني mustn't." },
+        { text: "56. True or False: 'He visited his uncle yesterday' is grammatically correct.", options: ["True", "False"], correct: 0, explanation: "صحيح! تركيب جملة ماضي بسيط سليمة." },
+        { text: "57. True or False: 'She don’t play tennis' is grammatically correct.", options: ["True", "False"], correct: 1, explanation: "خطأ! الصواب She doesn't play." },
+        { text: "58. True or False: 'Did they finish their homework?' is a correct Past Simple question.", options: ["True", "False"], correct: 0, explanation: "صحيح! Did + الفاعل + المصدر." },
+        { text: "59. True or False: We use 'doesn’t' with 'they' in the Present Simple negative.", options: ["True", "False"], correct: 1, explanation: "خطأ! نستخدم don't مع They." },
+        { text: "60. True or False: 'You mustn’t tell lies' expresses a prohibition.", options: ["True", "False"], correct: 0, explanation: "صحيح! نهي وتحريم لقول الكذب." },
+        { text: "61. True or False: 'I can to swim' is grammatically correct.", options: ["True", "False"], correct: 1, explanation: "خطأ! الفعل الناقص can يتبعه المصدر مجرداً بدون to." },
+        { text: "62. True or False: 'The picture is above the sofa' describes the picture as higher than the sofa.", options: ["True", "False"], correct: 0, explanation: "صحيح! Above تعني أعلى من." },
+        { text: "63. True or False: 'We didn’t went to the park' is grammatically correct.", options: ["True", "False"], correct: 1, explanation: "خطأ! بعد didn't يأتي المصدر go وليس الماضي went." },
+        { text: "64. True or False: 'My sister studies every day' is a correct Present Simple sentence.", options: ["True", "False"], correct: 0, explanation: "صحيح! تحول y إلى ies مع المفرد." },
+        { text: "65. True or False: 'The shoes are next to the bed' means the shoes are beside the bed.", options: ["True", "False"], correct: 0, explanation: "صحيح! Next to تساوي Beside." },
+
+        // Section 4: Analyzing (66-85)
+        { text: "66. Identify the incorrect sentence.", options: ["A. He plays football every day.", "B. They visited the zoo yesterday.", "C. She go to school by bus.", "D. I can swim well."], correct: 2, explanation: "الخطأ في C: ينبغي أن تكون She goes." },
+        { text: "67. Choose the correct correction: 'Did Sara went to the library?'", options: ["A. Did Sara goes to the library?", "B. Did Sara go to the library?", "C. Does Sara went to the library?", "D. Did Sara going to the library?"], correct: 1, explanation: "التصحيح السليم هو إرجاع الفعل للمصدر go مع Did." },
+        { text: "68. Ali usually _____ breakfast at 7 a.m., but yesterday he _____ breakfast at 9 a.m.", options: ["A. ate / eats", "B. eats / ate", "C. eat / eat", "D. eats / eat"], correct: 1, explanation: "الجزء الأول مضارع بسيط (eats)، والثاني ماضي لمضي اليوم (ate)." },
+        { text: "69. Which pair contains one Present Simple sentence and one Past Simple sentence?", options: ["A. She plays tennis. / She played tennis yesterday.", "B. She played tennis. / She plays tennis yesterday.", "C. She is playing tennis. / She will play tennis.", "D. She plays tennis. / She is playing tennis."], correct: 0, explanation: "الزوج الأول يجمع المضارع البسيط (plays) والماضي (played)." },
+        { text: "70. Choose the sentence with the correct modal verb.", options: ["A. You mustn’t study for your exam.", "B. You must study for your exam.", "C. You can’t wear a seat belt.", "D. You mustn’t be kind to others."], correct: 1, explanation: "الدراسة للاختبار واجب منطقي نستعمل له must." },
+        { text: "71. The keys are not on the desk or inside the drawer. They are at the back of the door. Where are they?", options: ["A. Between the desk and the drawer", "B. Behind the door", "C. Under the desk", "D. In the drawer"], correct: 1, explanation: "'At the back of' يعادل حرف الجر 'Behind'." },
+        { text: "72. Which sentence has a mistake in the underlined verb?", options: ["A. I went home early.", "B. She bought a new bag.", "C. They saw a bird.", "D. He buyed a book."], correct: 3, explanation: "الخطأ في buyed؛ الماضي من buy هو bought." },
+        { text: "73. Choose the correct pair.", options: ["A. He doesn’t likes tea. / He didn’t went home.", "B. He doesn’t like tea. / He didn’t go home.", "C. He don’t like tea. / He didn’t goes home.", "D. He doesn’t liked tea. / He didn’t going home."], correct: 1, explanation: "الزوج B يتبع القواعد الصحيحة للمصدر بعد النفي." },
+        { text: "74. Read: 'Mona can speak French. She mustn’t speak during the test.' What is correct?", options: ["A. Mona is unable to speak French.", "B. Mona is allowed to speak during the test.", "C. Mona has the ability to speak French but is not allowed to speak during the test.", "D. Mona must speak French during the test."], correct: 2, explanation: "تجمع الجملة بين القدرة (can) والمنع أثناء الاختبار (mustn't)." },
+        { text: "75. A ball is inside a box. A second ball is below the box. Which sentence is correct?", options: ["A. Both balls are in the box.", "B. One ball is in the box, and the other is under it.", "C. Both balls are under the box.", "D. One ball is behind the box."], correct: 1, explanation: "كرة بالداخل (in) والأخرى بأسفل (under)." },
+        { text: "76. Which sentence changes 'They play football every Friday' into the Past Simple?", options: ["A. They played football last Friday.", "B. They plays football every Friday.", "C. They did played football every Friday.", "D. They playing football every Friday."], correct: 0, explanation: "تحويل الفعل play إلى الماضي played وتغيير الظرف لـ last Friday." },
+        { text: "77. Identify the sentence that expresses a rule.", options: ["A. I can draw a picture.", "B. She visited her cousin.", "C. You must wear a uniform at school.", "D. They play chess on Sundays."], correct: 2, explanation: "ارتداء الزي المدرسي قاعدة ملزمة (must)." },
+        { text: "78. 'Does Ahmed _____ his room every week?'", options: ["A. cleans", "B. cleaned", "C. clean", "D. cleaning"], correct: 2, explanation: "وجود Does يقتضي المصدر clean." },
+        { text: "79. 'The lamp is _____ the table, and the cat is _____ the table.'", options: ["A. under / above", "B. on / under", "C. between / in", "D. behind / on"], correct: 1, explanation: "المصباح على الطاولة (on) والقطة تحتها (under)." },
+        { text: "80. Which sentence contains an error?", options: ["A. We didn’t see the teacher.", "B. Did you finish your work?", "C. She doesn’t eat fish.", "D. Did he watched TV?"], correct: 3, explanation: "الخطأ في D لوجود watched المسبوقة بـ Did والصواب watch." },
+        { text: "81. True or False: 'He studies every day' and 'He studied yesterday' use different tenses.", options: ["True", "False"], correct: 0, explanation: "صحيح! الأولى مضارع بسيط والأخرى ماضي بسيط." },
+        { text: "82. True or False: 'Mustn’t' is the correct modal verb to express an obligation to finish homework.", options: ["True", "False"], correct: 1, explanation: "خطأ! نستخدم Must للواجبات وليس Mustn't." },
+        { text: "83. True or False: 'Did' is followed by the base form of the main verb in a standard Past Simple question.", options: ["True", "False"], correct: 0, explanation: "صحيح! ينزل الفعل للمصدر بعد Did." },
+        { text: "84. True or False: 'The bag is between the chair' is a complete and correctly used sentence when only one chair is mentioned.", options: ["True", "False"], correct: 1, explanation: "خطأ! Between تتطلب عنصرين أو أكثر وليس كرسياً واحداً." },
+        { text: "85. True or False: 'Can' is followed by the base form of the main verb.", options: ["True", "False"], correct: 0, explanation: "صحيح! يتبعها المصدر المجرد." },
+
+        // Section 5: Evaluating (86-95)
+        { text: "86. Your friend writes: 'She go to school every day.' Which correction is best?", options: ["A. She going to school every day.", "B. She goes to school every day.", "C. She went to school every day yesterday.", "D. She do go to school every day."], correct: 1, explanation: "إضافة es للفاعل المفرد هو التصحيح الأدق." },
+        { text: "87. Which sentence is the best way to give safety advice about a dangerous electrical socket?", options: ["A. You can touch it.", "B. You must touch it.", "C. You mustn’t touch it.", "D. You did touch it."], correct: 2, explanation: "المنع الصارم للمخاطر نستخدم معه mustn't." },
+        { text: "88. Your teacher asks about yesterday’s activity. Which answer is best?", options: ["A. I visit the museum.", "B. I visited the museum.", "C. I visits the museum.", "D. I visiting the museum."], correct: 1, explanation: "الإجابة بالماضي البسيط لتطابق زمن السؤال عن الأمس." },
+        { text: "89. Which sentence is the best description of a daily routine?", options: ["A. I woke up late yesterday.", "B. I wake up at seven every day.", "C. I will wake up tomorrow.", "D. I am waking up now."], correct: 1, explanation: "تعبير دقيق للروتين اليومي بالمضارع البسيط." },
+        { text: "90. A sign says 'No Entry'. Which sentence best explains the sign?", options: ["A. You must enter.", "B. You can enter.", "C. You mustn’t enter.", "D. You entered yesterday."], correct: 2, explanation: "'ممنوع الدخول' تعني حظراً قاطعاً (mustn't)." },
+        { text: "91. You want to describe a book located on top of a desk. Which sentence is best?", options: ["A. The book is under the desk.", "B. The book is on the desk.", "C. The book is behind the desk.", "D. The book is between the desk."], correct: 1, explanation: "'on the desk' تعبر عن وجوده أعلى السطح." },
+        { text: "92. Which question is best for asking about a completed action last night?", options: ["A. Do you watch TV last night?", "B. Does you watch TV last night?", "C. Did you watch TV last night?", "D. Are you watch TV last night?"], correct: 2, explanation: "السؤال عن الليلة الماضية يبدأ بـ Did." },
+        { text: "93. Which sentence correctly expresses ability?", options: ["A. She can sings beautifully.", "B. She can sing beautifully.", "C. She cans sing beautifully.", "D. She can to sing beautifully."], correct: 1, explanation: "الصياغة السليمة can + sing بدون أي إضافات." },
+        { text: "94. True or False: 'You mustn’t cheat in an exam' is an appropriate sentence for expressing a prohibition.", options: ["True", "False"], correct: 0, explanation: "صحيح! الغش ممنوع إطلاقاً في الامتحانات." },
+        { text: "95. True or False: 'He didn’t played football yesterday' is the best grammatical choice.", options: ["True", "False"], correct: 1, explanation: "خطأ! والصواب He didn't play." },
+
+        // Section 6: Creating / Selecting Best (96-100)
+        { text: "96. Choose the best sentence about a past holiday.", options: ["A. We go to Abu Dhabi last holiday.", "B. We went to Abu Dhabi last holiday.", "C. We goes to Abu Dhabi last holiday.", "D. We going to Abu Dhabi last holiday."], correct: 1, explanation: "الجملة B تستخدم الماضي الصحيح went مع العطلة الماضية." },
+        { text: "97. Choose the best sentence about a school rule.", options: ["A. Students mustn’t run in the corridors.", "B. Students must runs in the corridors.", "C. Students can to run in the corridors.", "D. Students doesn’t run in the corridors."], correct: 0, explanation: "قوانين المدرسة تمنع الركض في الممرات بشكل صحيح في A." },
+        { text: "98. Choose the best sentence describing a regular activity and an ability.", options: ["A. Omar play football, and he can swims.", "B. Omar plays football, and he can swim.", "C. Omar played football every day, and he cans swim.", "D. Omar playing football, and he can to swim."], correct: 1, explanation: "الربط بين مضارع مفرد (plays) وقدرة مجردة (can swim)." },
+        { text: "99. Choose the best description of a classroom.", options: ["A. The teacher is in front of the students.", "B. The teacher is between the students when there is only one student.", "C. The teacher are in front of the students.", "D. The teacher was in front of the students every day tomorrow."], correct: 0, explanation: "الجملة A تصف الموقع بالنسبة للطلاب بشكل دقيق لغوياً." },
+        { text: "100. Choose the best sentence that uses all grammar rules correctly.", options: ["A. Yesterday, Sara go to school, and she mustn’t late.", "B. Sara goes to school every day, and she can speaks English.", "C. Sara went to school yesterday, and she can speak English.", "D. Sara didn’t went to school, and she cans speak English."], correct: 2, explanation: "الجملة C خالية من أي أخطاء لغوية في الماضي والقدرة." }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let studentName = "";
+    let studentClass = "";
+
+    function startGame() {
+        studentName = document.getElementById('student-name').value.trim();
+        studentClass = document.getElementById('student-class').value.trim();
+
+        if(!studentName || !studentClass) {
+            alert('يرجى كتابة الاسم والصف لبدء اللعبة!');
+            return;
+        }
+
+        document.getElementById('screen-start').classList.add('hidden');
+        document.getElementById('progress-container').classList.remove('hidden');
+        document.getElementById('screen-quiz').classList.remove('hidden');
+        document.getElementById('screen-quiz').classList.add('flex');
+        
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = questionsBank[currentQ];
+        document.getElementById('question-text').innerText = q.text;
+        
+        // Update Stage Badge
+        const badge = document.getElementById('stage-badge');
+        if(currentQ < 15) badge.innerText = "المرحلة 1: التذكر (Remembering)";
+        else if(currentQ < 35) badge.innerText = "المرحلة 2: الفهم (Understanding)";
+        else if(currentQ < 65) badge.innerText = "المرحلة 3: التطبيق (Applying)";
+        else if(currentQ < 85) badge.innerText = "المرحلة 4: التحليل (Analyzing)";
+        else if(currentQ < 95) badge.innerText = "المرحلة 5: التقييم (Evaluating)";
+        else badge.innerText = "المرحلة 6: التميز والتركيب (Creating)";
+
+        // Progress Bar
+        const progress = ((currentQ + 1) / questionsBank.length) * 100;
+        document.getElementById('progress-bar').style.width = progress + '%';
+
+        // Options
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        document.getElementById('feedback-box').classList.add('hidden');
+        document.getElementById('btn-next').classList.add('hidden');
+
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'w-full text-left p-4 rounded-xl border-2 border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 font-semibold text-slate-700 transition duration-200 flex items-center justify-between group';
+            btn.innerHTML = `<span>${opt}</span><span class="opacity-0 group-hover:opacity-100 transition">👉</span>`;
+            btn.onclick = () => checkAnswer(idx);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIdx) {
+        const q = questionsBank[currentQ];
+        const options = document.querySelectorAll('#options-container button');
+        
+        options.forEach(opt => opt.disabled = true);
+
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackText = document.getElementById('feedback-text');
+
+        if(selectedIdx === q.correct) {
+            options[selectedIdx].className = "w-full text-left p-4 rounded-xl border-2 border-teal-500 bg-teal-50 text-teal-900 font-bold flex items-center justify-between";
+            options[selectedIdx].innerHTML += `<span>✓</span>`;
+            score++;
+            document.getElementById('score-val').innerText = score;
+            
+            feedbackBox.className = "p-4 rounded-2xl border text-right transition-all duration-300 mb-6 bg-teal-50 border-teal-200 text-teal-900";
+            feedbackTitle.innerText = "✨ إجابة صحيحة! أحسنت العمل.";
+        } else {
+            options[selectedIdx].className = "w-full text-left p-4 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-900 font-bold flex items-center justify-between";
+            options[selectedIdx].innerHTML += `<span>✗</span>`;
+            
+            options[q.correct].className = "w-full text-left p-4 rounded-xl border-2 border-teal-500 bg-teal-50 text-teal-900 font-bold flex items-center justify-between";
+            options[q.correct].innerHTML += `<span>✓</span>`;
+
+            feedbackBox.className = "p-4 rounded-2xl border text-right transition-all duration-300 mb-6 bg-rose-50 border-rose-200 text-rose-900";
+            feedbackTitle.innerText = "❌ إجابة خاطئة!";
+        }
+
+        feedbackText.innerText = q.explanation;
+        feedbackBox.classList.remove('hidden');
+        document.getElementById('btn-next').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        if(currentQ < questionsBank.length) {
+            showQuestion();
+        } else {
+            finishGame();
+        }
+    }
+
+    function finishGame() {
+        document.getElementById('screen-quiz').classList.add('hidden');
+        document.getElementById('progress-container').classList.add('hidden');
+        
+        document.getElementById('screen-certificate').classList.remove('hidden');
+        document.getElementById('screen-certificate').classList.add('flex');
+
+        document.getElementById('cert-name').innerText = studentName;
+        document.getElementById('cert-class').innerText = studentClass;
+        document.getElementById('cert-score').innerText = score;
+        
+        const today = new Date();
+        document.getElementById('cert-date').innerText = today.toLocaleDateString('ar-EG');
+    }
+</script>
+</body>
+</html>
+```
